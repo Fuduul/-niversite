@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بحث عن الجامعات</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus {
+            border-color: #28a745;
+            outline: none;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .results {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            background: #f9f9f9;
+        }
+        .result-item {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            background: #ffffff;
+            border: 2px solid #ddd;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .result-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+            background-color: #f0f8ff;
+        }
+        .result-item p {
+            margin: 5px 0;
+            color: #555;
+        }
+        .result-header {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>بحث عن الجامعات</h1>
+        <label for="city">المدينة:</label>
+        <input type="text" id="city" placeholder="أدخل اسم المدينة">
+
+        <label for="university">اسم الجامعة:</label>
+        <input type="text" id="university" placeholder="أدخل اسم الجامعة">
+
+        <label for="degree">درجة الفرع:</label>
+        <select id="degree">
+            <option value="">اختر درجة الفرع</option>
+            <option value="معهد">معهد</option>
+            <option value="كلية">كلية</option>
+        </select>
+
+        <label for="branchName">اسم الفرع:</label>
+        <input type="text" id="branchName" placeholder="أدخل اسم الفرع">
+
+        <label for="language">اللغة:</label>
+        <select id="language">
+            <option value="">اختر اللغة</option>
+            <option value="تركية">تركية</option>
+            <option value="إنجليزية">إنجليزية</option>
+            <option value="عربية">عربية</option>
+        </select>
+
+        <button onclick="searchUniversities()">بحث</button>
+
+        <div class="results" id="results"></div>
+    </div>
+
+    <script>
+        let jsonData = []; // متغير لتخزين البيانات المحملة
+
+        // تحميل البيانات من SheetSu
+        fetch('https://sheetdb.io/api/v1/ou9tem70mjd0a') // استبدل هذا بالرابط الخاص بك
+            .then(response => response.json())
+            .then(data => {
+                jsonData = data; // تخزين البيانات المحملة
+                console.log(jsonData); // عرض البيانات في وحدة التحكم
+            })
+            .catch(error => console.error('Error:', error));
+
+        // دالة البحث
+        function searchUniversities() {
+            const city = document.getElementById('city').value.trim();
+            const university = document.getElementById('university').value.trim();
+            const degree = document.getElementById('degree').value.trim();
+            const branchName = document.getElementById('branchName').value.trim();
+            const language = document.getElementById('language').value.trim();
+            const resultsDiv = document.getElementById('results');
+
+            const results = jsonData.filter(item => 
+                (!city || item['المدينة']?.trim() === city) &&
+                (!university || item['اسم الجامعة']?.trim() === university) &&
+                (!degree || item['درجة الفرع']?.trim() === degree) &&
+                (!branchName || item['اسم الفرع']?.includes(branchName)) &&
+                (!language || item['اللغة']?.trim() === language)
+            );
+
+            if (results.length > 0) {
+                resultsDiv.innerHTML = '<h2>نتائج البحث:</h2>' + results.map(result => `
+                    <div class="result-item">
+                        <p class="result-header">المدينة:</p> <p>${result['المدينة'] || 'غير معروف'}</p>
+                        <p class="result-header">الجامعة:</p> <p>${result['اسم الجامعة'] || 'غير معروف'}</p>
+                        <p class="result-header">النوع:</p> <p>${result['نوع الجامعة'] || 'غير معروف'}</p>
+                        <p class="result-header">الدرجة:</p> <p>${result['درجة الفرع'] || 'غير معروف'}</p>
+                        <p class="result-header">الفرع:</p> <p>${result['اسم الفرع'] || 'غير معروف'}</p>
+                        <p class="result-header">اللغة:</p> <p>${result['اللغة'] || 'غير معروف'}</p>
+                    </div>
+                `).join('');
+            } else {
+                resultsDiv.innerHTML = '<h2>لا توجد نتائج.</h2>';
+            }
+        }
+    </script>
+</body>
+</html>
